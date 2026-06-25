@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aggressive Cut Calculator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        :root {
+            --bg-primary: #0f0f0f;
+            --bg-secondary: #1a1a1a;
+            --bg-card: #242424;
+            --accent-green: #00ff88;
+            --accent-blue: #00d4ff;
+            --accent-purple: #a855f7;
+            --accent-orange: #ff6b35;
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0a0;
+            --border-color: #333333;
+        }
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background-image: 
+                radial-gradient(ellipse at top left, rgba(0, 255, 136, 0.05) 0%, transparent 50%),
+                radial-gradient(ellipse at bottom right, rgba(0, 212, 255, 0.05) 0%, transparent 50%);
+        }
+        .container {
+            width: 100%;
+            max-width: 480px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+        .header h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent-green), var(--accent-blue));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 8px;
+        }
+        .header p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+        .card {
+            background: var(--bg-card);
+            border-radius: 20px;
+            padding: 32px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+        .input-group {
+            margin-bottom: 24px;
+        }
+        .input-group label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .input-wrapper {
+            position: relative;
+        }
+        .input-wrapper input {
+            width: 100%;
+            padding: 16px 20px;
+            font-size: 1.1rem;
+            background: var(--bg-secondary);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+            outline: none;
+        }
+        .input-wrapper input:focus {
+            border-color: var(--accent-green);
+            box-shadow: 0 0 0 4px rgba(0, 255, 136, 0.1);
+        }
+        .input-wrapper input::placeholder {
+            color: #555;
+        }
+        .input-wrapper .unit {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+        .error-message {
+            color: #ff4757;
+            font-size: 0.85rem;
+            margin-top: 8px;
+            display: none;
+            align-items: center;
+            gap: 6px;
+        }
+        .error-message.show {
+            display: flex;
+        }
+        .calculate-btn {
+            width: 100%;
+            padding: 18px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            background: linear-gradient(135deg, var(--accent-green), #00cc6a);
+            border: none;
+            border-radius: 12px;
+            color: #000;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .calculate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0, 255, 136, 0.3);
+        }
+        .calculate-btn:active {
+            transform: translateY(0);
+        }
+        .results-card {
+            margin-top: 24px;
+            display: none;
+            animation: slideUp 0.5s ease;
+        }
+        .results-card.show {
+            display: block;
+        }
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .total-calories {
+            text-align: center;
+            padding: 32px;
+            background: linear-gradient(135deg, rgba(0, 255, 136, 0.1), rgba(0, 212, 255, 0.1));
+            border-radius: 16px;
+            margin-bottom: 24px;
+            border: 1px solid rgba(0, 255, 136, 0.2);
+        }
+        .total-calories .label {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+        .total-calories .value {
+            font-size: 3.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent-green), var(--accent-blue));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .total-calories .unit {
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+        }
+        .chart-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 24px;
+        }
+        .donut-chart {
+            position: relative;
+            width: 180px;
+            height: 180px;
+        }
+        .donut-chart svg {
+            width: 100%;
+            height: 100%;
+            transform: rotate(-90deg);
+        }
+        .donut-chart circle {
+            fill: none;
+            stroke-width: 20;
+        }
+        .donut-chart .bg {
+            stroke: var(--bg-secondary);
+        }
+        .donut-chart .protein {
+            stroke: var(--accent-blue);
+            stroke-linecap: round;
+            transition: stroke-dasharray 0.8s ease;
+        }
+        .donut-chart .fat {
+            stroke: var(--accent-orange);
+            stroke-linecap: round;
+            transition: stroke-dasharray 0.8s ease;
+        }
+        .donut-chart .carbs {
+            stroke: var(--accent-purple);
+            stroke-linecap: round;
+            transition: stroke-dasharray 0.8s ease;
+        }
+        .donut-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+        .donut-center .title {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+        }
+        .donut-center .percentage {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+        .macros-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+        .macro-item {
+            background: var(--bg-secondary);
+            padding: 20px 16px;
+            border-radius: 12px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+        .macro-item:hover {
+            transform: translateY(-2px);
+            border-color: var(--accent-green);
+        }
+        .macro-item .indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin: 0 auto 12px;
+        }
+        .macro-item.protein .indicator {
+            background: var(--accent-blue);
+            box-shadow: 0 0 10px var(--accent-blue);
+        }
+        .macro-item.fat .indicator {
+            background: var(--accent-orange);
+            box-shadow: 0 0 10px var(--accent-orange);
+        }
+        .macro-item.carbs .indicator {
+            background: var(--accent-purple);
+            box-shadow: 0 0 10px var(--accent-purple);
+        }
+        .macro-item .value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+        .macro-item.protein .value {
+            color: var(--accent-blue);
+        }
+        .macro-item.fat .value {
+            color: var(--accent-orange);
+        }
+        .macro-item.carbs .value {
+            color: var(--accent-purple);
+        }
+        .macro-item .label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .macro-item .grams {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+        .deficit-info {
+            margin-top: 20px;
+            padding: 16px;
+            background: rgba(255, 107, 53, 0.1);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 107, 53, 0.2);
+            text-align: center;
+        }
+        .deficit-info .label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+        .deficit-info .value {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--accent-orange);
+        }
+        @media (max-width: 480px) {
+            .card {
+                padding: 24px;
+            }
+            .header h1 {
+                font-size: 1.75rem;
+            }
+            .total-calories .value {
+                font-size: 2.75rem;
+            }
+            .macros-grid {
+                gap: 8px;
+            }
+            .macro-item {
+                padding: 16px 12px;
+            }
+            .macro-item .value {
+                font-size: 1.4rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Aggressive Cut</h1>
+            <p>Calculate your cutting calories & macros</p>
+        </div>
+        <div class="card">
+            <div class="input-group">
+                <label for="maintenance">Maintenance Calories</label>
+                <div class="input-wrapper">
+                    <input 
+                        type="number" 
+                        id="maintenance" 
+                        placeholder="2500"
+                        min="0"
+                    >
+                    <span class="unit">kcal</span>
+                </div>
+                <div class="error-message" id="maintenance-error">
+                    <span>⚠</span> Please enter a valid calorie amount
+                </div>
+            </div>
+            <div class="input-group">
+                <label for="weight">Current Body Weight</label>
+                <div class="input-wrapper">
+                    <input 
+                        type="number" 
+                        id="weight" 
+                        placeholder="75"
+                        min="0"
+                        step="0.1"
+                    >
+                    <span class="unit">kg</span>
+                </div>
+                <div class="error-message" id="weight-error">
+                    <span>⚠</span> Please enter a valid weight
+                </div>
+            </div>
+            <button class="calculate-btn" onclick="calculate()">
+                Calculate Cut
+            </button>
+            <div class="results-card" id="results">
+                <div class="total-calories">
+                    <div class="label">Daily Target</div>
+                    <div class="value" id="total-cal">0</div>
+                    <div class="unit">calories</div>
+                </div>
+                <div class="chart-container">
+                    <div class="donut-chart">
+                        <svg viewBox="0 0 100 100">
+                            <circle class="bg" cx="50" cy="50" r="40"></circle>
+                            <circle class="carbs" id="carbs-ring" cx="50" cy="50" r="40" stroke-dasharray="0 251.2"></circle>
+                            <circle class="fat" id="fat-ring" cx="50" cy="50" r="40" stroke-dasharray="0 251.2"></circle>
+                            <circle class="protein" id="protein-ring" cx="50" cy="50" r="40" stroke-dasharray="0 251.2"></circle>
+                        </svg>
+                        <div class="donut-center">
+                            <div class="title">Deficit</div>
+                            <div class="percentage" id="deficit-percent">35%</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="macros-grid">
+                    <div class="macro-item protein">
+                        <div class="indicator"></div>
+                        <div class="value" id="protein-val">0</div>
+                        <div class="label">Protein</div>
+                        <div class="grams" id="protein-g">0g</div>
+                    </div>
+                    <div class="macro-item fat">
+                        <div class="indicator"></div>
+                        <div class="value" id="fat-val">0</div>
+                        <div class="label">Fat</div>
+                        <div class="grams" id="fat-g">0g</div>
+                    </div>
+                    <div class="macro-item carbs">
+                        <div class="indicator"></div>
+                        <div class="value" id="carbs-val">0</div>
+                        <div class="label">Carbs</div>
+                        <div class="grams" id="carbs-g">0g</div>
+                    </div>
+                </div>
+                <div class="deficit-info">
+                    <div class="label">Daily Calorie Deficit</div>
+                    <div class="value" id="deficit-cal">0 kcal</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        function calculate() {
+            const maintenanceInput = document.getElementById('maintenance');
+            const weightInput = document.getElementById('weight');
+            const maintenanceError = document.getElementById('maintenance-error');
+            const weightError = document.getElementById('weight-error');
+            const resultsCard = document.getElementById('results');
+            maintenanceError.classList.remove('show');
+            weightError.classList.remove('show');
+            const maintenance = parseFloat(maintenanceInput.value);
+            const weight = parseFloat(weightInput.value);
+            let hasError = false;
+            if (!maintenanceInput.value || isNaN(maintenance) || maintenance <= 0) {
+                maintenanceError.classList.add('show');
+                hasError = true;
+            }
+            if (!weightInput.value || isNaN(weight) || weight <= 0) {
+                weightError.classList.add('show');
+                hasError = true;
+            }
+            if (hasError) {
+                resultsCard.classList.remove('show');
+                return;
+            }
+            const aggressiveCutCalories = Math.round(maintenance * 0.65);
+            const proteinGrams = Math.round(weight * 2.1);
+            const fatGrams = Math.round(weight * 0.5);
+            const carbsGrams = Math.round((aggressiveCutCalories - (proteinGrams * 4) - (fatGrams * 9)) / 4);
+            const proteinCals = proteinGrams * 4;
+            const fatCals = fatGrams * 9;
+            const carbsCals = Math.max(0, carbsGrams * 4);
+            const totalMacroCals = proteinCals + fatCals + carbsCals;
+            const proteinPercent = Math.round((proteinCals / totalMacroCals) * 100);
+            const fatPercent = Math.round((fatCals / totalMacroCals) * 100);
+            const carbsPercent = 100 - proteinPercent - fatPercent;
+            const deficit = maintenance - aggressiveCutCalories;
+            document.getElementById('total-cal').textContent = aggressiveCutCalories.toLocaleString();
+            document.getElementById('protein-val').textContent = proteinPercent + '%';
+            document.getElementById('protein-g').textContent = proteinGrams + 'g';
+            document.getElementById('fat-val').textContent = fatPercent + '%';
+            document.getElementById('fat-g').textContent = fatGrams + 'g';
+            document.getElementById('carbs-val').textContent = Math.max(0, carbsPercent) + '%';
+            document.getElementById('carbs-g').textContent = Math.max(0, carbsGrams) + 'g';
+            document.getElementById('deficit-cal').textContent = '-' + deficit.toLocaleString() + ' kcal';
+            const circumference = 2 * Math.PI * 40;
+            const proteinDash = (proteinPercent / 100) * circumference;
+            const fatDash = (fatPercent / 100) * circumference;
+            const carbsDash = (Math.max(0, carbsPercent) / 100) * circumference;
+            const proteinRing = document.getElementById('protein-ring');
+            const fatRing = document.getElementById('fat-ring');
+            const carbsRing = document.getElementById('carbs-ring');
+            setTimeout(() => {
+                carbsRing.style.strokeDasharray = `${carbsDash} ${circumference}`;
+                carbsRing.style.strokeDashoffset = '0';
+                fatRing.style.strokeDasharray = `${fatDash} ${circumference}`;
+                fatRing.style.strokeDashoffset = `-${carbsDash}`;
+                proteinRing.style.strokeDasharray = `${proteinDash} ${circumference}`;
+                proteinRing.style.strokeDashoffset = `-${carbsDash + fatDash}`;
+            }, 100);
+            resultsCard.classList.add('show');
+        }
+        document.querySelectorAll('input').forEach(input => {
+            input.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    calculate();
+                }
+            });
+            input.addEventListener('input', (e) => {
+                if (e.target.value < 0) {
+                    e.target.value = '';
+                }
+            });
+        });
+    </script>
+</body>
+</html>
